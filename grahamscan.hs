@@ -1,5 +1,7 @@
 import Data.List
 
+--Call the grahamScan function on a list of points you want to find the convex hull of...
+
 data Direction = LeftTurn | RightTurn | Collinear 
     deriving (Show)
 
