@@ -55,12 +55,13 @@ pointsFromTupleList = map (\(x,y) -> Point x y)
 
 pointsRemoved :: [(Point, Point, Point, Direction)] -> [Point] 
 pointsRemoved [] = []
-pointsRemoved s@((a,b,c,LeftTurn):xs)  = (a:b:(pointsRemoved' xs))  
+pointsRemoved ((p,c,_,LeftTurn):xs)  = (p:c:(pointsRemoved' xs))  
+pointsRemoved ((p,_,_,Collinear):xs) = (p:(pointsRemoved' xs))
 
 pointsRemoved' [] = []
-pointsRemoved' s@((p,c,n,Collinear):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
-pointsRemoved' s@((p,c,n,LeftTurn):xs) = c:pointsRemoved' xs 
-pointsRemoved' s@((p,c,n,RightTurn):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
+pointsRemoved' s@((_,c,_,Collinear):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
+pointsRemoved' s@((_,c,_,LeftTurn):xs) = c:pointsRemoved' xs 
+pointsRemoved' s@((_,c,_,RightTurn):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
 
 
 examplePoints :: [Point]
@@ -76,15 +77,4 @@ pointsList ((a,b,c,_):xs) = a:b:c:(pointsList' xs)
 
 pointsList' [] = []
 pointsList' ((a,b,c,_):xs) = c:(pointsList' xs)
-
-
-
-
-
-
-
-
-
-
-
 
