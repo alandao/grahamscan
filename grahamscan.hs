@@ -53,19 +53,25 @@ grahamScan points
 pointsFromTupleList :: [(Float, Float)] -> [Point]
 pointsFromTupleList = map (\(x,y) -> Point x y)
 
+--first two points are always part of convex hull, unless it's collinear
 pointsRemoved :: [(Point, Point, Point, Direction)] -> [Point] 
 pointsRemoved [] = []
 pointsRemoved ((p,c,_,LeftTurn):xs)  = (p:c:(pointsRemoved' xs))  
 pointsRemoved ((p,_,_,Collinear):xs) = (p:(pointsRemoved' xs))
 
-pointsRemoved' [] = []
+
+pointsRemoved' [] = [] 
 pointsRemoved' s@((_,c,_,Collinear):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
-pointsRemoved' s@((_,c,_,LeftTurn):xs) = c:pointsRemoved' xs 
-pointsRemoved' s@((_,c,_,RightTurn):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
+pointsRemoved' s@((_,c,_,LeftTurn):xs) = pointsRemoved' xs 
+pointsRemoved' s@((_,c,_,RightTurn):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s))
+
+isLeftTurn :: (Point, Point, Point, Direction) -> Bool
+isLeftTurn (_,_,_,LeftTurn) = True
+isLeftTurn _ = False
 
 
 examplePoints :: [Point]
-examplePoints = pointsFromTupleList [(1,1),(2,2),(3,3),(4,4),(5,5),(6,6), (2,4), (8,2), (1,5), (-5, 2)] 
+examplePoints = pointsFromTupleList [(0,0),(2,2),(1,1.5),(0.5,2.2),(-0.4,1.5),(-4,4),(-5,3)] 
 
 turnsList :: [Point] -> [(Point, Point, Point, Direction)]
 turnsList (a:b:[]) = []
