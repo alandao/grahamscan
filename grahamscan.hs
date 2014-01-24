@@ -1,9 +1,7 @@
 import Data.List
 
---Call the grahamScan function on a list of points you want to find the convex hull of...
-
 data Direction = LeftTurn | RightTurn | Collinear 
-    deriving (Show)
+    deriving (Eq, Show)
 
 data Point = Point  { xPos :: Float 
                     , yPos :: Float
@@ -40,47 +38,28 @@ lowestY xs = head leftestBottomPoints
             leftestBottomPoints = filter (\point -> xPos point == minimum (map xPos bottomPoints)) bottomPoints
             bottomPoints = filter (\point -> yPos point == minimum ( map yPos xs)) xs 
 
-grahamScan :: [Point] -> [Point]
-grahamScan points
+gScan :: [Point] -> [Point]
+gScan points
     | length points < 3     = error "Needs 3 points to generate a convex hull!"
-    | otherwise             = rmp 
+    | otherwise             = convex 
     where   p = nub points
             sp = sortedPoints p
-            tl = turnsList (sp ++ [head sp])
-            rmp = pointsRemoved tl
-            
+            rmp = scanRmv sp sp 
+            convex = filter (\x -> not (x `elem` rmp)) sp  
 
+
+scanRmv :: [Point] -> [Point] -> [Point]
+
+scanRmv (p:c:[]) _ = []
+scanRmv (p:c:n:xs) copy =  if (direction p c n) == RightTurn || (direction p c n) == Collinear  
+                            then c:scanRmv (filter (/= c) copy) (filter (/= c) copy)
+                            else scanRmv (c:n:xs) copy
+                         
+                        
 pointsFromTupleList :: [(Float, Float)] -> [Point]
 pointsFromTupleList = map (\(x,y) -> Point x y)
 
---first two points are always part of convex hull, unless it's collinear
-pointsRemoved :: [(Point, Point, Point, Direction)] -> [Point] 
-pointsRemoved [] = []
-pointsRemoved ((p,c,_,LeftTurn):xs)  = (p:c:(pointsRemoved' xs))  
-pointsRemoved ((p,_,_,Collinear):xs) = (p:(pointsRemoved' xs))
-
-
-pointsRemoved' [] = [] 
-pointsRemoved' s@((_,c,_,Collinear):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s)) 
-pointsRemoved' s@((_,c,_,LeftTurn):xs) = pointsRemoved' xs 
-pointsRemoved' s@((_,c,_,RightTurn):xs) = (pointsRemoved' . turnsList ) (filter (/= c) (pointsList s))
-
-isLeftTurn :: (Point, Point, Point, Direction) -> Bool
-isLeftTurn (_,_,_,LeftTurn) = True
-isLeftTurn _ = False
-
 
 examplePoints :: [Point]
-examplePoints = pointsFromTupleList [(0,0),(2,2),(1,1.5),(0.5,2.2),(-0.4,1.5),(-4,4),(-5,3)] 
-
-turnsList :: [Point] -> [(Point, Point, Point, Direction)]
-turnsList (a:b:[]) = []
-turnsList (a:b:c:xs) = (a,b,c, direction a b c) : turnsList(b:c:xs)
-
-pointsList :: [(Point, Point, Point, Direction)] -> [Point]
-pointsList [] = []
-pointsList ((a,b,c,_):xs) = a:b:c:(pointsList' xs)
-
-pointsList' [] = []
-pointsList' ((a,b,c,_):xs) = c:(pointsList' xs)
+examplePoints = pointsFromTupleList [(0,0), (2,2), (1,1.5), (0.5, 2.2), (-0.4, 1.5), (-4, 4), (-5, 3)] 
 
